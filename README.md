@@ -26,6 +26,20 @@ Modern TUI calendar and task manager with customizable interface. Manages your e
 
 ## Installation
 
+### Standalone binary
+
+On Linux, macOS, or Windows, build a single-file executable for your current
+platform with Python 3.10 or newer and [uv](https://docs.astral.sh/uv/):
+
+```sh
+uv sync --extra build
+uv run python calcure/builder/build.py
+```
+
+The executable is created inside the `calcure/` package folder as `calcure`
+(`calcure.exe` on Windows). Builds are platform-specific; run the builder on
+the platform you want to use the executable on.
+
 ### Linux and Mac OS
 
 There are several ways to install:
