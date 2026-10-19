@@ -1,0 +1,50 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: "0 9 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out fork
+        uses: actions/checkout@v4
+
+      - name: Fetch upstream
+        run: git fetch https://github.com/anufrievroman/calcure.git main
+
+      - name: Update sync branch
+        run: git push --force origin FETCH_HEAD:refs/heads/upstream-sync
+
+      - name: Create or update sync pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: main
+        run: |
+          pr_number="$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --head "$GITHUB_REPOSITORY_OWNER:upstream-sync" \
+            --base "$TARGET_BRANCH" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ -z "$pr_number" ]; then
+            gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base "$TARGET_BRANCH" \
+              --head "$GITHUB_REPOSITORY_OWNER:upstream-sync" \
+              --title "Sync latest changes from upstream" \
+              --body "Monthly sync from [anufrievroman/calcure](https://github.com/anufrievroman/calcure). Review and resolve any conflicts before merging."
+          else
+            gh pr edit "$pr_number" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Sync latest changes from upstream" \
+              --body "Monthly sync from [anufrievroman/calcure](https://github.com/anufrievroman/calcure). Review and resolve any conflicts before merging."
+          fi
